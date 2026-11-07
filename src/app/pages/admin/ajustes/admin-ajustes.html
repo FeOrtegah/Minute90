@@ -1,0 +1,76 @@
+<div class="admin__titulo"><h1>Ajustes de la tienda</h1></div>
+
+<form class="form-admin" (submit)="$event.preventDefault(); guardar()" novalidate>
+  <fieldset class="bloque">
+    <legend>Contacto</legend>
+    <div class="fila-2">
+      <label class="campo">
+        <span>WhatsApp para pedidos *</span>
+        <input type="tel" placeholder="56912345678" [value]="form().whatsapp" (input)="set('whatsapp', $any($event.target).value)" />
+        <small class="texto-suave">Con código de país, sin + ni espacios. A este número llegan los pedidos.</small>
+      </label>
+      <label class="campo">
+        <span>Instagram</span>
+        <input type="text" placeholder="@minute90" [value]="form().instagram" (input)="set('instagram', $any($event.target).value)" />
+      </label>
+    </div>
+  </fieldset>
+
+  <fieldset class="bloque">
+    <legend>Zonas de envío</legend>
+    <p class="texto-suave">Comunas donde haces envío y cuánto cobras. Si no agregas ninguna, el cliente escribe su comuna y el envío se coordina por WhatsApp.</p>
+    <ul class="lista-editable">
+      @for (z of form().zonasEnvio; track $index; let i = $index) {
+        <li><span>{{ z.nombre }}</span><span>{{ z.costo === 0 ? 'Gratis' : '$' + z.costo.toLocaleString('es-CL') }}</span><button type="button" (click)="quitarZona(i)">✕</button></li>
+      }
+    </ul>
+    <div class="agregar">
+      <input #zonaNombre type="text" placeholder="Comuna" (keydown.enter)="$event.preventDefault(); agregarZona(zonaNombre, zonaCosto)" />
+      <input #zonaCosto type="text" inputmode="numeric" placeholder="Costo (0 = gratis)" (keydown.enter)="$event.preventDefault(); agregarZona(zonaNombre, zonaCosto)" />
+      <button type="button" class="btn btn--borde btn--chico" (click)="agregarZona(zonaNombre, zonaCosto)">Agregar</button>
+    </div>
+  </fieldset>
+
+  <fieldset class="bloque">
+    <legend>Puntos de encuentro</legend>
+    <ul class="lista-editable">
+      @for (p of form().puntosEncuentro; track $index; let i = $index) {
+        <li><span>{{ p }}</span><button type="button" (click)="quitarPunto(i)">✕</button></li>
+      }
+    </ul>
+    <div class="agregar">
+      <input #punto type="text" placeholder="Ej: Metro Plaza de Maipú (salida norte)" (keydown.enter)="$event.preventDefault(); agregarPunto(punto)" />
+      <button type="button" class="btn btn--borde btn--chico" (click)="agregarPunto(punto)">Agregar</button>
+    </div>
+  </fieldset>
+
+  <fieldset class="bloque">
+    <legend>Datos de transferencia</legend>
+    <label class="campo">
+      <span>Se muestran al cliente cuando elige pagar por transferencia</span>
+      <textarea rows="5" placeholder="Nombre&#10;RUT&#10;Banco&#10;Tipo de cuenta&#10;N° de cuenta&#10;Correo" [value]="form().datosTransferencia" (input)="set('datosTransferencia', $any($event.target).value)"></textarea>
+    </label>
+  </fieldset>
+
+  @if (mensaje(); as m) {
+    <p [class.error]="m.tipo === 'error'" [class.ok]="m.tipo === 'ok'">{{ m.texto }}</p>
+  }
+  <div class="form-admin__botones">
+    <button type="submit" class="btn btn--dorado" [disabled]="guardando()">{{ guardando() ? 'Guardando...' : 'Guardar ajustes' }}</button>
+  </div>
+</form>
+
+<form class="form-admin" (submit)="$event.preventDefault(); cambiarClave(actual, nueva, repetir)">
+  <fieldset class="bloque">
+    <legend>Cambiar contraseña</legend>
+    <label class="campo"><span>Contraseña actual</span><input #actual type="password" autocomplete="current-password" /></label>
+    <div class="fila-2">
+      <label class="campo"><span>Nueva contraseña</span><input #nueva type="password" autocomplete="new-password" /></label>
+      <label class="campo"><span>Repetir nueva</span><input #repetir type="password" autocomplete="new-password" /></label>
+    </div>
+    @if (mensajeClave(); as m) {
+      <p [class.error]="m.tipo === 'error'" [class.ok]="m.tipo === 'ok'">{{ m.texto }}</p>
+    }
+    <button type="submit" class="btn btn--borde">Cambiar contraseña</button>
+  </fieldset>
+</form>

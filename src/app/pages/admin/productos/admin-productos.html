@@ -1,0 +1,54 @@
+<div class="admin__titulo">
+  <h1>Productos <small class="texto-suave">({{ productos().length }})</small></h1>
+  <a routerLink="/admin/nuevo" class="btn btn--dorado">+ Nuevo producto</a>
+</div>
+
+<input class="admin__buscar" type="search" placeholder="Buscar por nombre, equipo o liga..." (input)="busqueda.set($any($event.target).value)" />
+
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+
+@if (cargando()) {
+  <p class="texto-suave">Cargando...</p>
+} @else if (productos().length === 0) {
+  <div class="vacio">
+    <p>Todavía no hay productos.</p>
+    <a routerLink="/admin/nuevo" class="btn btn--dorado">Subir la primera camiseta</a>
+  </div>
+} @else {
+  <div class="tabla-admin">
+    @for (p of filtrados(); track p._id) {
+      <div class="fila-admin" [class.fila-admin--oculta]="!p.activo">
+        <div class="fila-admin__img">
+          @if (p.imagenes[0]; as img) {
+            <img [src]="img.url" [alt]="p.nombre" loading="lazy" />
+          } @else {
+            <div class="card__sin-img">90</div>
+          }
+        </div>
+        <div class="fila-admin__info">
+          <strong>{{ p.nombre }}</strong>
+          <span class="texto-suave">{{ p.equipo }}@if (p.liga) { · {{ p.liga }} } · {{ p.tipo }}</span>
+          <span>
+            {{ precioFinal(p) | clp }}
+            @if (precioFinal(p) < p.precio) { <s class="texto-suave">{{ p.precio | clp }}</s> }
+            · Stock: <b [class.error]="stockTotal(p) === 0">{{ stockTotal(p) }}</b>
+          </span>
+        </div>
+        <div class="fila-admin__acciones">
+          <button type="button" class="chip" [class.chip--activo]="p.activo" (click)="alternar(p, 'activo')">
+            {{ p.activo ? 'Visible' : 'Oculto' }}
+          </button>
+          <button type="button" class="chip" [class.chip--activo]="p.destacado" (click)="alternar(p, 'destacado')">
+            {{ p.destacado ? '★ Destacado' : '☆ Destacar' }}
+          </button>
+          <a [routerLink]="['/admin/editar', p._id]" class="btn btn--borde btn--chico">Editar</a>
+          <button type="button" class="btn btn--peligro btn--chico" (click)="eliminar(p)">Eliminar</button>
+        </div>
+      </div>
+    } @empty {
+      <p class="texto-suave">Sin resultados para "{{ busqueda() }}".</p>
+    }
+  </div>
+}

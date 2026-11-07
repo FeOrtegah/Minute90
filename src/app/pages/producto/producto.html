@@ -1,0 +1,108 @@
+<div class="contenedor detalle-pagina">
+  <a routerLink="/catalogo" class="volver">← Volver al catálogo</a>
+
+  @switch (estado()) {
+    @case ('cargando') {
+      <div class="detalle">
+        <div class="card--skeleton detalle__skeleton"></div>
+        <div></div>
+      </div>
+    }
+    @case ('error') {
+      <div class="vacio">
+        <p>Esta camiseta no existe o ya no está disponible.</p>
+        <a routerLink="/catalogo" class="btn btn--dorado">Ver catálogo</a>
+      </div>
+    }
+    @default {
+      @if (producto(); as p) {
+        <div class="detalle">
+          <div class="galeria">
+            <div class="galeria__principal">
+              @if (p.imagenes[imagenActual()]; as img) {
+                <img [src]="img.url" [alt]="p.nombre" />
+              } @else {
+                <div class="card__sin-img">90</div>
+              }
+            </div>
+            @if (p.imagenes.length > 1) {
+              <div class="galeria__miniaturas">
+                @for (img of p.imagenes; track img.publicId; let i = $index) {
+                  <button type="button" [class.activa]="i === imagenActual()" (click)="imagenActual.set(i)">
+                    <img [src]="img.url" [alt]="p.nombre + ' foto ' + (i + 1)" loading="lazy" />
+                  </button>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="detalle__info">
+            <span class="sobretitulo">{{ p.equipo }}@if (p.liga) { · {{ p.liga }} }</span>
+            <h1>{{ p.nombre }}</h1>
+            <div class="detalle__etiquetas">
+              <span class="etiqueta">{{ p.tipo }}</span>
+              @if (p.temporada) {
+                <span class="etiqueta etiqueta--borde">Temporada {{ p.temporada }}</span>
+              }
+            </div>
+
+            <div class="detalle__precio">
+              <strong>{{ precio() | clp }}</strong>
+              @if (enOferta()) {
+                <s>{{ p.precio | clp }}</s>
+              }
+            </div>
+
+            <div class="campo">
+              <span>Talla</span>
+              <div class="tallas">
+                @for (t of p.tallas; track t.talla) {
+                  <button
+                    type="button"
+                    class="talla"
+                    [class.talla--activa]="tallaElegida() === t.talla"
+                    [class.talla--agotada]="t.stock === 0"
+                    [disabled]="t.stock === 0"
+                    (click)="elegirTalla(t.talla, t.stock)"
+                  >
+                    {{ t.talla }}
+                  </button>
+                } @empty {
+                  <span class="texto-suave">Sin tallas disponibles por ahora</span>
+                }
+              </div>
+              @if (tallaElegida() && stockTalla() <= 3) {
+                <small class="texto-dorado">¡Quedan solo {{ stockTalla() }}!</small>
+              }
+            </div>
+
+            <div class="detalle__comprar">
+              <div class="cantidad">
+                <button type="button" (click)="cambiarCantidad(-1)" aria-label="Menos">−</button>
+                <span>{{ cantidad() }}</span>
+                <button type="button" (click)="cambiarCantidad(1)" aria-label="Más">+</button>
+              </div>
+              <button type="button" class="btn btn--dorado btn--ancho" (click)="agregar()">Agregar al carrito</button>
+            </div>
+            @if (mensaje()) {
+              <p class="error">{{ mensaje() }}</p>
+            }
+
+            @if (p.descripcion) {
+              <div class="detalle__descripcion">
+                <h3>Descripción</h3>
+                <p>{{ p.descripcion }}</p>
+              </div>
+            }
+
+            <ul class="detalle__info-extra">
+              <li>Envío a domicilio o entrega en punto de encuentro</li>
+              <li>Pago por transferencia o efectivo</li>
+              <li>Confirmas tu pedido por WhatsApp</li>
+            </ul>
+          </div>
+        </div>
+      }
+    }
+  }
+</div>

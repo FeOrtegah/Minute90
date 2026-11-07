@@ -1,0 +1,71 @@
+<section class="hero">
+  <div class="contenedor hero__grid">
+    <div class="hero__texto">
+      <span class="sobretitulo">Camisetas de fútbol</span>
+      <h1>Perfectas como un gol <span class="dorado">en el 90</span></h1>
+      <p>Camisetas actuales y retro de tus equipos y selecciones favoritas. Pides por la web, coordinamos por WhatsApp.</p>
+      <div class="hero__botones">
+        <a routerLink="/catalogo" class="btn btn--dorado">Ver catálogo</a>
+        <a routerLink="/catalogo" [queryParams]="{ tipo: 'retro' }" class="btn btn--borde">Camisetas retro</a>
+      </div>
+    </div>
+    <div class="hero__logo">
+      <img src="logo.png" alt="Minute 90" width="420" height="420" />
+    </div>
+  </div>
+</section>
+
+<section class="beneficios">
+  <div class="contenedor beneficios__grid">
+    <div><strong>Envío o entrega</strong><span>Despacho a domicilio o punto de encuentro</span></div>
+    <div><strong>Transferencia o efectivo</strong><span>Pagas como te acomode</span></div>
+    <div><strong>Pedido por WhatsApp</strong><span>Confirmamos tu compra al toque</span></div>
+  </div>
+</section>
+
+<section class="seccion contenedor">
+  <div class="seccion__titulo">
+    <h2>Destacadas</h2>
+    <a routerLink="/catalogo" class="link-dorado">Ver todas →</a>
+  </div>
+
+  @if (cargando()) {
+    <div class="grid-productos">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="card card--skeleton"></div>
+      }
+    </div>
+  } @else if (error()) {
+    <p class="vacio">No pudimos cargar los productos. Intenta de nuevo en unos segundos.</p>
+  } @else if (destacados().length === 0) {
+    <p class="vacio">Pronto subiremos nuestras camisetas. ¡Vuelve en unos días!</p>
+  } @else {
+    <div class="grid-productos">
+      @for (p of destacados(); track p._id) {
+        <app-producto-card [producto]="p" />
+      }
+    </div>
+  }
+</section>
+
+@if (ligas().length) {
+  <section class="seccion contenedor">
+    <div class="seccion__titulo"><h2>Por liga</h2></div>
+    <div class="chips">
+      @for (liga of ligas(); track liga) {
+        <a class="chip" routerLink="/catalogo" [queryParams]="{ liga }">{{ liga }}</a>
+      }
+    </div>
+  </section>
+}
+
+@if (nuevos().length) {
+  <section class="seccion contenedor">
+    <div class="seccion__titulo"><h2>Recién llegadas</h2></div>
+    <div class="grid-productos">
+      @for (p of nuevos(); track p._id) {
+        <app-producto-card [producto]="p" />
+      }
+    </div>
+  </section>
+}

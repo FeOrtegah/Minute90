@@ -1,0 +1,49 @@
+<section class="pagina-titulo">
+  <div class="contenedor"><h1>Tu carrito</h1></div>
+</section>
+
+<div class="contenedor">
+  @if (carrito.items().length === 0) {
+    <div class="vacio">
+      <p>Tu carrito está vacío.</p>
+      <a routerLink="/catalogo" class="btn btn--dorado">Ver camisetas</a>
+    </div>
+  } @else {
+    <div class="carrito">
+      <ul class="carrito__lista">
+        @for (item of carrito.items(); track item.productoId + item.talla) {
+          <li class="item">
+            <a [routerLink]="['/producto', item.productoId]" class="item__img">
+              @if (item.imagen) {
+                <img [src]="item.imagen" [alt]="item.nombre" />
+              } @else {
+                <div class="card__sin-img">90</div>
+              }
+            </a>
+            <div class="item__info">
+              <span class="card__equipo">{{ item.equipo }}</span>
+              <a [routerLink]="['/producto', item.productoId]" class="item__nombre">{{ item.nombre }}</a>
+              <span class="texto-suave">Talla {{ item.talla }} · {{ item.precio | clp }} c/u</span>
+            </div>
+            <div class="cantidad cantidad--chica">
+              <button type="button" (click)="carrito.cambiarCantidad(item, item.cantidad - 1)" aria-label="Menos">−</button>
+              <span>{{ item.cantidad }}</span>
+              <button type="button" (click)="carrito.cambiarCantidad(item, item.cantidad + 1)" [disabled]="item.cantidad >= item.stock" aria-label="Más">+</button>
+            </div>
+            <strong class="item__total">{{ item.precio * item.cantidad | clp }}</strong>
+            <button type="button" class="item__quitar" (click)="carrito.quitar(item)" aria-label="Quitar">✕</button>
+          </li>
+        }
+      </ul>
+
+      <aside class="resumen">
+        <h3>Resumen</h3>
+        <div class="resumen__fila"><span>Productos ({{ carrito.cantidadTotal() }})</span><span>{{ carrito.subtotal() | clp }}</span></div>
+        <div class="resumen__fila texto-suave"><span>Envío</span><span>Se calcula en el siguiente paso</span></div>
+        <div class="resumen__fila resumen__total"><span>Subtotal</span><span>{{ carrito.subtotal() | clp }}</span></div>
+        <a routerLink="/checkout" class="btn btn--dorado btn--ancho">Continuar compra</a>
+        <a routerLink="/catalogo" class="btn btn--borde btn--ancho">Seguir comprando</a>
+      </aside>
+    </div>
+  }
+</div>

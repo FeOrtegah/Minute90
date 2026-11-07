@@ -1,0 +1,130 @@
+<div class="admin__titulo">
+  <h1>{{ esEdicion() ? 'Editar producto' : 'Nuevo producto' }}</h1>
+  <a routerLink="/admin" class="link-dorado">← Volver</a>
+</div>
+
+@if (cargando()) {
+  <p class="texto-suave">Cargando...</p>
+} @else {
+  <form class="form-admin" (submit)="$event.preventDefault(); guardar()" novalidate>
+    <fieldset class="bloque">
+      <legend>Fotos</legend>
+      <p class="texto-suave">La primera foto es la que se ve en el catálogo. JPG, PNG o WEBP, hasta 5 MB cada una.</p>
+      <div class="fotos">
+        @for (img of form().imagenes; track img.publicId; let i = $index) {
+          <div class="foto" [class.foto--principal]="i === 0">
+            <img [src]="img.url" alt="Foto {{ i + 1 }}" />
+            <div class="foto__acciones">
+              @if (i !== 0) {
+                <button type="button" (click)="hacerPrincipal(i)" title="Usar como principal">★</button>
+              } @else {
+                <span>Principal</span>
+              }
+              <button type="button" (click)="quitarImagen(i)" title="Quitar">✕</button>
+            </div>
+          </div>
+        }
+        @if (form().imagenes.length < 8) {
+          <label class="foto foto--subir" [class.foto--cargando]="subiendo()">
+            <input type="file" accept="image/jpeg,image/png,image/webp" multiple hidden #archivo (change)="subir(archivo)" [disabled]="subiendo()" />
+            <span>{{ subiendo() ? 'Subiendo...' : '+ Agregar fotos' }}</span>
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <fieldset class="bloque">
+      <legend>Información</legend>
+      <label class="campo">
+        <span>Nombre *</span>
+        <input type="text" placeholder="Ej: Colo-Colo Local 2025" [value]="form().nombre" (input)="set('nombre', $any($event.target).value)" />
+      </label>
+      <div class="fila-2">
+        <label class="campo">
+          <span>Equipo / Selección *</span>
+          <input type="text" list="lista-equipos" placeholder="Ej: Colo-Colo" [value]="form().equipo" (input)="set('equipo', $any($event.target).value)" />
+          <datalist id="lista-equipos">
+            @for (e of filtros().equipos; track e) { <option [value]="e"></option> }
+          </datalist>
+        </label>
+        <label class="campo">
+          <span>Liga</span>
+          <input type="text" list="lista-ligas" placeholder="Ej: Chile, Premier League, Selecciones" [value]="form().liga" (input)="set('liga', $any($event.target).value)" />
+          <datalist id="lista-ligas">
+            @for (l of filtros().ligas; track l) { <option [value]="l"></option> }
+          </datalist>
+        </label>
+      </div>
+      <div class="fila-2">
+        <label class="campo">
+          <span>Tipo</span>
+          <select [value]="form().tipo" (change)="setTipo($any($event.target).value)">
+            @for (t of tipos; track t) { <option [value]="t">{{ t }}</option> }
+          </select>
+        </label>
+        <label class="campo">
+          <span>Temporada</span>
+          <input type="text" placeholder="Ej: 2025 o 1998" [value]="form().temporada" (input)="set('temporada', $any($event.target).value)" />
+        </label>
+      </div>
+      <label class="campo">
+        <span>Descripción</span>
+        <textarea rows="4" placeholder="Material, detalles, si es versión jugador o hincha..." [value]="form().descripcion" (input)="set('descripcion', $any($event.target).value)"></textarea>
+      </label>
+    </fieldset>
+
+    <fieldset class="bloque">
+      <legend>Precio</legend>
+      <div class="fila-2">
+        <label class="campo">
+          <span>Precio (CLP) *</span>
+          <input type="text" inputmode="numeric" placeholder="25000" [value]="form().precio || ''" (input)="set('precio', numero($any($event.target).value))" />
+        </label>
+        <label class="campo">
+          <span>Precio oferta (opcional)</span>
+          <input type="text" inputmode="numeric" placeholder="Dejar vacío si no hay oferta" [value]="form().precioOferta || ''" (input)="set('precioOferta', numero($any($event.target).value) || null)" />
+        </label>
+      </div>
+    </fieldset>
+
+    <fieldset class="bloque">
+      <legend>Tallas y stock *</legend>
+      <p class="texto-suave">Marca las tallas que tienes e indica cuántas unidades hay de cada una.</p>
+      <div class="tallas-admin">
+        @for (t of tallasDisponibles; track t) {
+          <div class="talla-admin" [class.talla-admin--activa]="stockDe(t) !== null">
+            <label>
+              <input type="checkbox" [checked]="stockDe(t) !== null" (change)="alternarTalla(t)" />
+              {{ t }}
+            </label>
+            @if (stockDe(t) !== null) {
+              <input type="text" inputmode="numeric" aria-label="Stock talla {{ t }}" [value]="stockDe(t)" (input)="cambiarStock(t, $any($event.target).value)" />
+            }
+          </div>
+        }
+      </div>
+    </fieldset>
+
+    <fieldset class="bloque">
+      <legend>Visibilidad</legend>
+      <label class="check">
+        <input type="checkbox" [checked]="form().activo" (change)="set('activo', $any($event.target).checked)" />
+        Visible en la tienda
+      </label>
+      <label class="check">
+        <input type="checkbox" [checked]="form().destacado" (change)="set('destacado', $any($event.target).checked)" />
+        Mostrar en destacados (página de inicio)
+      </label>
+    </fieldset>
+
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+    <div class="form-admin__botones">
+      <a routerLink="/admin" class="btn btn--borde">Cancelar</a>
+      <button type="submit" class="btn btn--dorado" [disabled]="guardando() || subiendo()">
+        {{ guardando() ? 'Guardando...' : esEdicion() ? 'Guardar cambios' : 'Crear producto' }}
+      </button>
+    </div>
+  </form>
+}

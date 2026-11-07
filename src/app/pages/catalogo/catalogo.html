@@ -1,0 +1,114 @@
+<section class="pagina-titulo">
+  <div class="contenedor">
+    <h1>Catálogo</h1>
+    <p>
+      @if (estado() === 'ok') {
+        {{ productos().length }} {{ productos().length === 1 ? 'camiseta' : 'camisetas' }}
+      } @else {
+        &nbsp;
+      }
+    </p>
+  </div>
+</section>
+
+<div class="contenedor catalogo">
+  <aside class="filtros" [class.filtros--abierto]="filtrosAbiertos()">
+    <div class="filtros__cabecera">
+      <h3>Filtros</h3>
+      @if (hayFiltros()) {
+        <button type="button" class="link-dorado" (click)="limpiar()">Limpiar</button>
+      }
+    </div>
+
+    <label class="campo">
+      <span>Buscar</span>
+      <input type="search" placeholder="Equipo, liga..." [value]="buscar() ?? ''" (input)="buscarTexto($any($event.target).value)" />
+    </label>
+
+    <label class="campo">
+      <span>Liga</span>
+      <select [value]="liga() ?? ''" (change)="aplicar({ liga: $any($event.target).value })">
+        <option value="">Todas</option>
+        @for (l of filtrosDisponibles().ligas; track l) {
+          <option [value]="l">{{ l }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="campo">
+      <span>Equipo</span>
+      <select [value]="equipo() ?? ''" (change)="aplicar({ equipo: $any($event.target).value })">
+        <option value="">Todos</option>
+        @for (e of filtrosDisponibles().equipos; track e) {
+          <option [value]="e">{{ e }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="campo">
+      <span>Tipo</span>
+      <select [value]="tipo() ?? ''" (change)="aplicar({ tipo: $any($event.target).value })">
+        <option value="">Todos</option>
+        @for (t of tipos; track t) {
+          <option [value]="t">{{ t }}</option>
+        }
+      </select>
+    </label>
+
+    <div class="campo">
+      <span>Talla</span>
+      <div class="tallas">
+        @for (t of filtrosDisponibles().tallas; track t) {
+          <button type="button" class="talla" [class.talla--activa]="talla() === t" (click)="aplicar({ talla: talla() === t ? null : t })">
+            {{ t }}
+          </button>
+        }
+      </div>
+    </div>
+  </aside>
+
+  <section class="catalogo__resultados">
+    <div class="catalogo__barra">
+      <button type="button" class="btn btn--borde btn--chico filtros__toggle" (click)="filtrosAbiertos.set(!filtrosAbiertos())">
+        {{ filtrosAbiertos() ? 'Ocultar filtros' : 'Filtros' }}
+      </button>
+      <label class="campo campo--linea">
+        <span>Ordenar</span>
+        <select (change)="cambiarOrden($any($event.target).value)">
+          <option value="recientes">Más recientes</option>
+          <option value="menor">Precio: menor a mayor</option>
+          <option value="mayor">Precio: mayor a menor</option>
+        </select>
+      </label>
+    </div>
+
+    @switch (estado()) {
+      @case ('cargando') {
+        <div class="grid-productos">
+          @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+            <div class="card card--skeleton"></div>
+          }
+        </div>
+      }
+      @case ('error') {
+        <p class="vacio">No pudimos cargar el catálogo. Intenta de nuevo en unos segundos.</p>
+      }
+      @default {
+        @if (productos().length === 0) {
+          <div class="vacio">
+            <p>No encontramos camisetas con esos filtros.</p>
+            @if (hayFiltros()) {
+              <button type="button" class="btn btn--borde" (click)="limpiar()">Ver todo</button>
+            }
+          </div>
+        } @else {
+          <div class="grid-productos">
+            @for (p of productos(); track p._id) {
+              <app-producto-card [producto]="p" />
+            }
+          </div>
+        }
+      }
+    }
+  </section>
+</div>

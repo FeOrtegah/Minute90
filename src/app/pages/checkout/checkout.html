@@ -1,0 +1,164 @@
+<section class="pagina-titulo">
+  <div class="contenedor"><h1>Finalizar compra</h1></div>
+</section>
+
+<div class="contenedor">
+  @if (enviado(); as e) {
+    <div class="confirmacion">
+      <img src="logo.png" alt="" width="110" height="110" />
+      <h2>¡Pedido listo!</h2>
+      <p>Se abrió WhatsApp con el detalle de tu pedido. <strong>Solo falta que presiones enviar</strong> para que te confirmemos.</p>
+      <p class="texto-suave">¿No se abrió WhatsApp?</p>
+      <a [href]="e.url" target="_blank" rel="noopener" class="btn btn--dorado">Abrir WhatsApp</a>
+      <a routerLink="/catalogo" class="btn btn--borde">Volver a la tienda</a>
+    </div>
+  } @else if (carrito.items().length === 0) {
+    <div class="vacio">
+      <p>Tu carrito está vacío.</p>
+      <a routerLink="/catalogo" class="btn btn--dorado">Ver camisetas</a>
+    </div>
+  } @else {
+    <div class="checkout">
+      <form class="checkout__form" (submit)="$event.preventDefault(); enviar()" novalidate>
+        <fieldset class="bloque">
+          <legend>1. Tus datos</legend>
+          <div class="fila-2">
+            <label class="campo">
+              <span>Nombre y apellido *</span>
+              <input type="text" autocomplete="name" [value]="datos().nombre" (input)="set('nombre', $any($event.target).value)" />
+              @if (error('nombre'); as msg) { <small class="error">{{ msg }}</small> }
+            </label>
+            <label class="campo">
+              <span>Teléfono *</span>
+              <input type="tel" autocomplete="tel" placeholder="+56 9 1234 5678" [value]="datos().telefono" (input)="set('telefono', $any($event.target).value)" />
+              @if (error('telefono'); as msg) { <small class="error">{{ msg }}</small> }
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="bloque">
+          <legend>2. Entrega</legend>
+          <div class="opciones">
+            <label class="opcion" [class.opcion--activa]="datos().entrega === 'envio'">
+              <input type="radio" name="entrega" [checked]="datos().entrega === 'envio'" (change)="set('entrega', 'envio')" />
+              <strong>Envío a domicilio</strong>
+              <small>Te lo llevamos a tu casa</small>
+            </label>
+            <label class="opcion" [class.opcion--activa]="datos().entrega === 'encuentro'">
+              <input type="radio" name="entrega" [checked]="datos().entrega === 'encuentro'" (change)="set('entrega', 'encuentro')" />
+              <strong>Punto de encuentro</strong>
+              <small>Sin costo de envío</small>
+            </label>
+          </div>
+
+          @if (datos().entrega === 'envio') {
+            <div class="fila-2">
+              <label class="campo">
+                <span>Comuna *</span>
+                @if (ajustes().zonasEnvio.length) {
+                  <select [value]="datos().zona" (change)="set('zona', $any($event.target).value)">
+                    <option value="">Selecciona tu comuna</option>
+                    @for (z of ajustes().zonasEnvio; track z.nombre) {
+                      <option [value]="z.nombre">{{ z.nombre }} ({{ z.costo === 0 ? 'gratis' : (z.costo | clp) }})</option>
+                    }
+                  </select>
+                } @else {
+                  <input type="text" [value]="datos().zona" (input)="set('zona', $any($event.target).value)" />
+                }
+                @if (error('zona'); as msg) { <small class="error">{{ msg }}</small> }
+              </label>
+              <label class="campo">
+                <span>Dirección *</span>
+                <input type="text" autocomplete="street-address" placeholder="Calle, número, depto" [value]="datos().direccion" (input)="set('direccion', $any($event.target).value)" />
+                @if (error('direccion'); as msg) { <small class="error">{{ msg }}</small> }
+              </label>
+            </div>
+            <label class="campo">
+              <span>Referencia (opcional)</span>
+              <input type="text" placeholder="Ej: casa esquina, portón negro" [value]="datos().referencia" (input)="set('referencia', $any($event.target).value)" />
+            </label>
+          } @else {
+            <div class="fila-2">
+              <label class="campo">
+                <span>Lugar {{ ajustes().puntosEncuentro.length ? '*' : '' }}</span>
+                @if (ajustes().puntosEncuentro.length) {
+                  <select [value]="datos().punto" (change)="set('punto', $any($event.target).value)">
+                    <option value="">Elige un punto</option>
+                    @for (p of ajustes().puntosEncuentro; track p) {
+                      <option [value]="p">{{ p }}</option>
+                    }
+                  </select>
+                } @else {
+                  <input type="text" placeholder="Lo coordinamos por WhatsApp" [value]="datos().punto" (input)="set('punto', $any($event.target).value)" />
+                }
+                @if (error('punto'); as msg) { <small class="error">{{ msg }}</small> }
+              </label>
+              <label class="campo">
+                <span>Día y horario preferido (opcional)</span>
+                <input type="text" placeholder="Ej: sábado en la tarde" [value]="datos().horario" (input)="set('horario', $any($event.target).value)" />
+              </label>
+            </div>
+          }
+        </fieldset>
+
+        <fieldset class="bloque">
+          <legend>3. Pago</legend>
+          <div class="opciones">
+            <label class="opcion" [class.opcion--activa]="datos().pago === 'transferencia'">
+              <input type="radio" name="pago" [checked]="datos().pago === 'transferencia'" (change)="set('pago', 'transferencia')" />
+              <strong>Transferencia</strong>
+              <small>Te enviamos los datos</small>
+            </label>
+            <label class="opcion" [class.opcion--activa]="datos().pago === 'efectivo'">
+              <input type="radio" name="pago" [checked]="datos().pago === 'efectivo'" (change)="set('pago', 'efectivo')" />
+              <strong>Efectivo</strong>
+              <small>Pagas al recibir</small>
+            </label>
+          </div>
+          @if (datos().pago === 'transferencia' && ajustes().datosTransferencia) {
+            <div class="datos-transferencia">
+              <strong>Datos para transferir</strong>
+              <pre>{{ ajustes().datosTransferencia }}</pre>
+            </div>
+          }
+          <label class="campo">
+            <span>Notas (opcional)</span>
+            <textarea rows="3" placeholder="Algo que debamos saber: nombre y número para estampar, etc." [value]="datos().notas" (input)="set('notas', $any($event.target).value)"></textarea>
+          </label>
+        </fieldset>
+
+        @if (!ajustes().whatsapp) {
+          <p class="error">La tienda aún no configura su WhatsApp. Intenta más tarde.</p>
+        }
+        @if (intentoEnviar() && !valido()) {
+          <p class="error">Revisa los campos marcados.</p>
+        }
+        <button type="submit" class="btn btn--whatsapp btn--ancho" [disabled]="!ajustes().whatsapp">
+          Enviar pedido por WhatsApp
+        </button>
+      </form>
+
+      <aside class="resumen">
+        <h3>Tu pedido</h3>
+        <ul class="resumen__items">
+          @for (i of carrito.items(); track i.productoId + i.talla) {
+            <li>
+              <span>{{ i.cantidad }}× {{ i.nombre }} <small class="texto-suave">({{ i.talla }})</small></span>
+              <span>{{ i.precio * i.cantidad | clp }}</span>
+            </li>
+          }
+        </ul>
+        <div class="resumen__fila"><span>Subtotal</span><span>{{ carrito.subtotal() | clp }}</span></div>
+        <div class="resumen__fila">
+          <span>Envío</span>
+          <span>
+            @if (costoEnvio() === null) { A coordinar }
+            @else if (costoEnvio() === 0) { Gratis }
+            @else { {{ costoEnvio() | clp }} }
+          </span>
+        </div>
+        <div class="resumen__fila resumen__total"><span>Total</span><span>{{ total() | clp }}</span></div>
+      </aside>
+    </div>
+  }
+</div>
