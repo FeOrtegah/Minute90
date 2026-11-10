@@ -1456,9 +1456,16 @@ input[type='radio'] {
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity 0.35s ease, transform 0.35s;
+  transition:
+    opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @media (hover: hover) {
   .card:hover .card__img-hover { opacity: 1; }
+}
+
+/* zoom más lento para las dos fotos */
+.card__img img {
+  transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
