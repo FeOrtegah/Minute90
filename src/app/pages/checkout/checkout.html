@@ -41,8 +41,8 @@
           <div class="opciones">
             <label class="opcion" [class.opcion--activa]="datos().entrega === 'envio'">
               <input type="radio" name="entrega" [checked]="datos().entrega === 'envio'" (change)="set('entrega', 'envio')" />
-              <strong>Envío a domicilio</strong>
-              <small>Te lo llevamos a tu casa</small>
+              <strong>Envío por pagar</strong>
+              <small>A todo Chile. El despacho lo pagas al recibir</small>
             </label>
             <label class="opcion" [class.opcion--activa]="datos().entrega === 'encuentro'">
               <input type="radio" name="entrega" [checked]="datos().entrega === 'encuentro'" (change)="set('entrega', 'encuentro')" />
@@ -52,20 +52,31 @@
           </div>
 
           @if (datos().entrega === 'envio') {
+            <p class="nota-envio">
+              📦 El envío se hace <strong>por pagar</strong>: el costo del despacho lo pagas directamente a la empresa de transporte al recibir o retirar tu pedido. No se suma al total de esta compra.
+            </p>
+            <div class="fila-2">
+              <label class="campo">
+                <span>RUT *</span>
+                <input type="text" inputmode="text" placeholder="12.345.678-9" maxlength="12" [value]="datos().rut" (input)="setRut($any($event.target).value)" />
+                @if (error('rut'); as msg) { <small class="error">{{ msg }}</small> }
+              </label>
+              <label class="campo">
+                <span>Región *</span>
+                <select [value]="datos().region" (change)="set('region', $any($event.target).value)">
+                  <option value="">Selecciona tu región</option>
+                  @for (r of regiones; track r) {
+                    <option [value]="r">{{ r }}</option>
+                  }
+                </select>
+                @if (error('region'); as msg) { <small class="error">{{ msg }}</small> }
+              </label>
+            </div>
             <div class="fila-2">
               <label class="campo">
                 <span>Comuna *</span>
-                @if (ajustes().zonasEnvio.length) {
-                  <select [value]="datos().zona" (change)="set('zona', $any($event.target).value)">
-                    <option value="">Selecciona tu comuna</option>
-                    @for (z of ajustes().zonasEnvio; track z.nombre) {
-                      <option [value]="z.nombre">{{ z.nombre }} ({{ z.costo === 0 ? 'gratis' : (z.costo | clp) }})</option>
-                    }
-                  </select>
-                } @else {
-                  <input type="text" [value]="datos().zona" (input)="set('zona', $any($event.target).value)" />
-                }
-                @if (error('zona'); as msg) { <small class="error">{{ msg }}</small> }
+                <input type="text" autocomplete="address-level2" [value]="datos().comuna" (input)="set('comuna', $any($event.target).value)" />
+                @if (error('comuna'); as msg) { <small class="error">{{ msg }}</small> }
               </label>
               <label class="campo">
                 <span>Dirección *</span>
@@ -75,7 +86,7 @@
             </div>
             <label class="campo">
               <span>Referencia (opcional)</span>
-              <input type="text" placeholder="Ej: casa esquina, portón negro" [value]="datos().referencia" (input)="set('referencia', $any($event.target).value)" />
+              <input type="text" placeholder="Ej: casa esquina, o la sucursal donde prefieres retirar" [value]="datos().referencia" (input)="set('referencia', $any($event.target).value)" />
             </label>
           } @else {
             <div class="fila-2">
@@ -109,12 +120,16 @@
               <strong>Transferencia</strong>
               <small>Te enviamos los datos</small>
             </label>
-            <label class="opcion" [class.opcion--activa]="datos().pago === 'efectivo'">
-              <input type="radio" name="pago" [checked]="datos().pago === 'efectivo'" (change)="set('pago', 'efectivo')" />
+            <label class="opcion" [class.opcion--activa]="datos().pago === 'efectivo'" [class.opcion--deshabilitada]="!efectivoDisponible()">
+              <input type="radio" name="pago" [checked]="datos().pago === 'efectivo'" [disabled]="!efectivoDisponible()" (change)="set('pago', 'efectivo')" />
               <strong>Efectivo</strong>
-              <small>Pagas al recibir</small>
+              <small>{{ efectivoDisponible() ? 'Pagas al momento de la entrega' : 'Solo con punto de encuentro' }}</small>
             </label>
           </div>
+          @if (!efectivoDisponible()) {
+            <p class="nota-envio">💳 Para envíos el pago es <strong>solo por transferencia</strong>. Si prefieres pagar en efectivo, elige <strong>Punto de encuentro</strong>.</p>
+          }
+          @if (error('pago'); as msg) { <p class="error">{{ msg }}</p> }
           @if (datos().pago === 'transferencia' && ajustes().datosTransferencia) {
             <div class="datos-transferencia">
               <strong>Datos para transferir</strong>
@@ -151,11 +166,7 @@
         <div class="resumen__fila"><span>Subtotal</span><span>{{ carrito.subtotal() | clp }}</span></div>
         <div class="resumen__fila">
           <span>Envío</span>
-          <span>
-            @if (costoEnvio() === null) { A coordinar }
-            @else if (costoEnvio() === 0) { Gratis }
-            @else { {{ costoEnvio() | clp }} }
-          </span>
+          <span>{{ datos().entrega === 'envio' ? 'Por pagar' : 'Gratis' }}</span>
         </div>
         <div class="resumen__fila resumen__total"><span>Total</span><span>{{ total() | clp }}</span></div>
       </aside>

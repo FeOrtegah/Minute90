@@ -1378,3 +1378,19 @@ input[type='radio'] {
 }
 
 .fila-admin__acciones .btn--chico { white-space: nowrap; }
+
+.nota-envio {
+  margin: 0 0 1rem;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  border: 1px dashed var(--dorado-oscuro);
+  background: rgba(212, 175, 55, 0.06);
+  font-size: 0.9rem;
+  color: var(--crema);
+  strong { color: var(--dorado); }
+}
+
+.opcion--deshabilitada {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
