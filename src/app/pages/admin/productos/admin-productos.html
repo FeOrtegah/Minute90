@@ -44,6 +44,7 @@
             {{ p.destacado ? '★ Destacado' : '☆ Destacar' }}
           </button>
           <a [routerLink]="['/admin/editar', p._id]" class="btn btn--borde btn--chico">Editar</a>
+          <a routerLink="/admin/nuevo" [queryParams]="{ desde: p._id }" class="btn btn--borde btn--chico" title="Crear una copia sin fotos">Duplicar</a>
           <button type="button" class="btn btn--peligro btn--chico" (click)="eliminar(p)">Eliminar</button>
         </div>
       </div>

@@ -39,6 +39,10 @@ export class ProductosService {
     return this.http.get<Producto[]>(`${this.url}/admin/todos`);
   }
 
+  obtenerAdmin(id: string) {
+    return this.http.get<Producto>(`${this.url}/admin/${id}`);
+  }
+
   crear(datos: ProductoForm) {
     return this.http.post<Producto>(this.url, datos);
   }
@@ -51,9 +55,20 @@ export class ProductosService {
     return this.http.delete<{ mensaje: string }>(`${this.url}/${id}`);
   }
 
-  subirImagenes(archivos: File[]) {
+  /** Pide al backend un nombre de carpeta libre para un producto nuevo */
+  reservarCarpeta(nombre: string) {
+    return this.http.post<{ carpeta: string }>(`${environment.apiUrl}/upload/carpeta`, { nombre });
+  }
+
+  subirImagenes(archivos: File[], carpeta: string) {
     const fd = new FormData();
+    fd.append('carpeta', carpeta); // va antes de las fotos para que el backend lo lea primero
     archivos.forEach((a) => fd.append('imagenes', a));
     return this.http.post<Imagen[]>(`${environment.apiUrl}/upload`, fd);
+  }
+
+  /** Borra fotos subidas que nunca se guardaron (y la carpeta si quedó vacía) */
+  eliminarImagenes(publicIds: string[], carpeta?: string) {
+    return this.http.post<{ mensaje: string }>(`${environment.apiUrl}/upload/eliminar`, { publicIds, carpeta });
   }
 }

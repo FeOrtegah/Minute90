@@ -25,6 +25,7 @@ export interface Producto {
   precioOferta: number | null;
   tallas: TallaStock[];
   imagenes: Imagen[];
+  carpeta: string;
   destacado: boolean;
   activo: boolean;
   createdAt?: string;

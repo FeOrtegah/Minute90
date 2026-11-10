@@ -1,44 +1,19 @@
 <div class="admin__titulo">
-  <h1>{{ esEdicion() ? 'Editar producto' : 'Nuevo producto' }}</h1>
-  <a routerLink="/admin" class="link-dorado">← Volver</a>
+  <h1>{{ esEdicion() ? 'Editar producto' : desde() ? 'Duplicar producto' : 'Nuevo producto' }}</h1>
+  <button type="button" class="link-dorado" (click)="cancelar()">← Volver</button>
 </div>
 
 @if (cargando()) {
   <p class="texto-suave">Cargando...</p>
 } @else {
   <form class="form-admin" (submit)="$event.preventDefault(); guardar()" novalidate>
-    <fieldset class="bloque">
-      <legend>Fotos</legend>
-      <p class="texto-suave">La primera foto es la que se ve en el catálogo. JPG, PNG o WEBP, hasta 5 MB cada una.</p>
-      <div class="fotos">
-        @for (img of form().imagenes; track img.publicId; let i = $index) {
-          <div class="foto" [class.foto--principal]="i === 0">
-            <img [src]="img.url" alt="Foto {{ i + 1 }}" />
-            <div class="foto__acciones">
-              @if (i !== 0) {
-                <button type="button" (click)="hacerPrincipal(i)" title="Usar como principal">★</button>
-              } @else {
-                <span>Principal</span>
-              }
-              <button type="button" (click)="quitarImagen(i)" title="Quitar">✕</button>
-            </div>
-          </div>
-        }
-        @if (form().imagenes.length < 8) {
-          <label class="foto foto--subir" [class.foto--cargando]="subiendo()">
-            <input type="file" accept="image/jpeg,image/png,image/webp" multiple hidden #archivo (change)="subir(archivo)" [disabled]="subiendo()" />
-            <span>{{ subiendo() ? 'Subiendo...' : '+ Agregar fotos' }}</span>
-          </label>
-        }
-      </div>
-    </fieldset>
+    @if (aviso()) {
+      <p class="aviso-admin">{{ aviso() }} <button type="button" (click)="aviso.set(null)">✕</button></p>
+    }
 
+    <!-- 1. INFORMACIÓN -->
     <fieldset class="bloque">
-      <legend>Información</legend>
-      <label class="campo">
-        <span>Nombre *</span>
-        <input type="text" placeholder="Ej: Colo-Colo Local 2025" [value]="form().nombre" (input)="set('nombre', $any($event.target).value)" />
-      </label>
+      <legend>1. Camiseta</legend>
       <div class="fila-2">
         <label class="campo">
           <span>Equipo / Selección *</span>
@@ -68,28 +43,110 @@
         </label>
       </div>
       <label class="campo">
+        <span>Nombre en la tienda *</span>
+        <input type="text" placeholder="Se arma solo con equipo, tipo y temporada" [value]="form().nombre" (input)="setNombre($any($event.target).value)" />
+        <small class="texto-suave">Se completa solo. Puedes cambiarlo si quieres otro nombre.</small>
+      </label>
+      <label class="campo">
         <span>Descripción</span>
-        <textarea rows="4" placeholder="Material, detalles, si es versión jugador o hincha..." [value]="form().descripcion" (input)="set('descripcion', $any($event.target).value)"></textarea>
+        <textarea rows="3" placeholder="Material, si es versión jugador o hincha, detalles..." [value]="form().descripcion" (input)="set('descripcion', $any($event.target).value)"></textarea>
       </label>
     </fieldset>
 
+    <!-- 2. FOTOS -->
     <fieldset class="bloque">
-      <legend>Precio</legend>
+      <legend>2. Fotos <small class="texto-suave">({{ form().imagenes.length }}/{{ maxFotos }})</small></legend>
+
+      <label class="campo">
+        <span>Carpeta de fotos</span>
+        @if (carpetaBloqueada()) {
+          <div class="carpeta carpeta--fija">📁 {{ carpetaVista() }}</div>
+        } @else {
+          <div class="carpeta">
+            <span class="texto-suave">📁 {{ 'minute90/productos/' }}</span>
+            <input type="text" placeholder="se crea con el nombre del producto" [value]="carpetaNombre()" (input)="setCarpeta($any($event.target).value)" />
+          </div>
+          <small class="texto-suave">Se crea automáticamente al subir la primera foto. Puedes cambiar el nombre antes de subir.</small>
+        }
+      </label>
+
+      <div
+        class="dropzone"
+        [class.dropzone--activa]="arrastrando()"
+        [class.dropzone--deshabilitada]="!puedeSubir()"
+        (dragover)="arrastrar($event, true)"
+        (dragleave)="arrastrar($event, false)"
+        (drop)="soltar($event)"
+      >
+        <label>
+          <input type="file" accept="image/jpeg,image/png,image/webp" multiple hidden #archivo (change)="elegirArchivos(archivo)" [disabled]="!puedeSubir()" />
+          @if (subiendo()) {
+            <strong>{{ progreso() ?? 'Subiendo...' }}</strong>
+          } @else if (!carpetaVista()) {
+            <strong>Escribe el equipo o nombre primero</strong>
+            <span>Con eso se crea la carpeta de fotos</span>
+          } @else {
+            <strong>📷 Arrastra las fotos aquí o haz clic para elegirlas</strong>
+            <span>Puedes elegir varias a la vez. Se optimizan solas.</span>
+          }
+        </label>
+      </div>
+
+      @if (form().imagenes.length) {
+        <div class="fotos">
+          @for (img of form().imagenes; track img.publicId; let i = $index; let ultimo = $last) {
+            <div class="foto" [class.foto--principal]="i === 0">
+              <img [src]="img.url" alt="Foto {{ i + 1 }}" />
+              @if (i === 0) {
+                <span class="foto__principal">Principal</span>
+              }
+              <div class="foto__acciones">
+                <button type="button" (click)="mover(i, -1)" [disabled]="i === 0" title="Mover a la izquierda">◀</button>
+                @if (i !== 0) {
+                  <button type="button" (click)="hacerPrincipal(i)" title="Usar como principal">★</button>
+                }
+                <button type="button" (click)="mover(i, 1)" [disabled]="ultimo" title="Mover a la derecha">▶</button>
+                <button type="button" (click)="quitarImagen(img)" title="Quitar">✕</button>
+              </div>
+            </div>
+          }
+        </div>
+        <small class="texto-suave">La foto principal es la que aparece en el catálogo.</small>
+      }
+    </fieldset>
+
+    <!-- 3. PRECIO -->
+    <fieldset class="bloque">
+      <legend>3. Precio</legend>
       <div class="fila-2">
         <label class="campo">
-          <span>Precio (CLP) *</span>
-          <input type="text" inputmode="numeric" placeholder="25000" [value]="form().precio || ''" (input)="set('precio', numero($any($event.target).value))" />
+          <span>Precio *</span>
+          <div class="input-precio">
+            <b>$</b>
+            <input type="text" inputmode="numeric" placeholder="29.990" [value]="miles(form().precio)" (input)="set('precio', numero($any($event.target).value))" />
+          </div>
         </label>
         <label class="campo">
           <span>Precio oferta (opcional)</span>
-          <input type="text" inputmode="numeric" placeholder="Dejar vacío si no hay oferta" [value]="form().precioOferta || ''" (input)="set('precioOferta', numero($any($event.target).value) || null)" />
+          <div class="input-precio">
+            <b>$</b>
+            <input type="text" inputmode="numeric" placeholder="Vacío = sin oferta" [value]="miles(form().precioOferta)" (input)="set('precioOferta', numero($any($event.target).value) || null)" />
+          </div>
         </label>
       </div>
     </fieldset>
 
+    <!-- 4. TALLAS -->
     <fieldset class="bloque">
-      <legend>Tallas y stock *</legend>
-      <p class="texto-suave">Marca las tallas que tienes e indica cuántas unidades hay de cada una.</p>
+      <legend>4. Tallas y stock * <small class="texto-suave">({{ stockTotal() }} unidades)</small></legend>
+      <div class="presets">
+        @for (p of presets; track p.nombre) {
+          <button type="button" class="chip" (click)="aplicarPreset(p.tallas)">{{ p.nombre }}</button>
+        }
+        @if (form().tallas.length) {
+          <button type="button" class="chip" (click)="limpiarTallas()">Limpiar</button>
+        }
+      </div>
       <div class="tallas-admin">
         @for (t of tallasDisponibles; track t) {
           <div class="talla-admin" [class.talla-admin--activa]="stockDe(t) !== null">
@@ -103,10 +160,17 @@
           </div>
         }
       </div>
+      @if (form().tallas.length > 1) {
+        <div class="agregar">
+          <input #stockTodas type="text" inputmode="numeric" placeholder="Mismo stock para todas las tallas marcadas" (keydown.enter)="$event.preventDefault(); stockParaTodas(stockTodas.value)" />
+          <button type="button" class="btn btn--borde btn--chico" (click)="stockParaTodas(stockTodas.value)">Aplicar</button>
+        </div>
+      }
     </fieldset>
 
+    <!-- 5. VISIBILIDAD -->
     <fieldset class="bloque">
-      <legend>Visibilidad</legend>
+      <legend>5. Visibilidad</legend>
       <label class="check">
         <input type="checkbox" [checked]="form().activo" (change)="set('activo', $any($event.target).checked)" />
         Visible en la tienda
@@ -117,14 +181,23 @@
       </label>
     </fieldset>
 
-    @if (error()) {
-      <p class="error">{{ error() }}</p>
-    }
-    <div class="form-admin__botones">
-      <a routerLink="/admin" class="btn btn--borde">Cancelar</a>
-      <button type="submit" class="btn btn--dorado" [disabled]="guardando() || subiendo()">
-        {{ guardando() ? 'Guardando...' : esEdicion() ? 'Guardar cambios' : 'Crear producto' }}
-      </button>
+    <div class="barra-guardar">
+      <div class="barra-guardar__resumen">
+        <strong>{{ form().nombre || 'Sin nombre' }}</strong>
+        <span class="texto-suave">{{ clp(form().precioOferta || form().precio) }} · {{ form().imagenes.length }} fotos · {{ stockTotal() }} u.</span>
+      </div>
+      @if (error()) {
+        <p class="error">{{ error() }}</p>
+      }
+      <div class="form-admin__botones">
+        <button type="button" class="btn btn--borde" (click)="cancelar()">Cancelar</button>
+        @if (!esEdicion()) {
+          <button type="button" class="btn btn--borde" [disabled]="guardando() || subiendo()" (click)="guardar(true)">Guardar y crear otra</button>
+        }
+        <button type="submit" class="btn btn--dorado" [disabled]="guardando() || subiendo()">
+          {{ guardando() ? 'Guardando...' : esEdicion() ? 'Guardar cambios' : 'Crear producto' }}
+        </button>
+      </div>
     </div>
   </form>
 }

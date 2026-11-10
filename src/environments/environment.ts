@@ -1,4 +1,4 @@
-// Producción (ng build). Cambia apiUrl por la URL de tu backend en Render.
+// Producción (ng build). URL del backend publicado en Vercel.
 export const environment = {
-  apiUrl: 'https://minute90-backend.onrender.com/api',
+  apiUrl: 'https://minute90-backend.vercel.app/api',
 };
