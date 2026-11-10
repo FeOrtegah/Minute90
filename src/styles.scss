@@ -1451,3 +1451,14 @@ input[type='radio'] {
     text-decoration: underline;
   }
 }
+/* ---------- segunda foto al pasar el mouse ---------- */
+.card__img-hover {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.35s ease, transform 0.35s;
+}
+
+@media (hover: hover) {
+  .card:hover .card__img-hover { opacity: 1; }
+}

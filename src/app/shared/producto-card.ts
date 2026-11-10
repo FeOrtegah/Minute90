@@ -10,7 +10,11 @@ import { ClpPipe } from './clp.pipe';
     <a class="card" [routerLink]="['/producto', producto()._id]">
       <div class="card__img">
         @if (producto().imagenes[0]; as img) {
-          <img [src]="img.url" [alt]="producto().nombre" loading="lazy" />
+          <img class="card__img-principal" [src]="img.url" [alt]="producto().nombre" loading="lazy" />
+          <!-- Segunda foto: aparece al pasar el mouse -->
+          @if (producto().imagenes[1]; as img2) {
+            <img class="card__img-hover" [src]="img2.url" alt="" loading="lazy" aria-hidden="true" />
+          }
         } @else {
           <div class="card__sin-img">90</div>
         }
