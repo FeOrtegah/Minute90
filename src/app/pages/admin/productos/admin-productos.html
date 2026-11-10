@@ -1,9 +1,17 @@
 <div class="admin__titulo">
-  <h1>Productos <small class="texto-suave">({{ productos().length }})</small></h1>
+  <h1>Productos <small class="texto-suave">({{ productos().length }} · {{ totalUnidades() }} unidades)</small></h1>
   <a routerLink="/admin/nuevo" class="btn btn--dorado">+ Nuevo producto</a>
 </div>
 
-<input class="admin__buscar" type="search" placeholder="Buscar por nombre, equipo o liga..." (input)="busqueda.set($any($event.target).value)" />
+<div class="admin__filtros">
+  <input class="admin__buscar" type="search" placeholder="Buscar por nombre, equipo o liga..." (input)="busqueda.set($any($event.target).value)" />
+  <label class="check">
+    <input type="checkbox" [checked]="soloSinStock()" (change)="soloSinStock.set($any($event.target).checked)" />
+    Solo con tallas agotadas
+  </label>
+</div>
+
+<p class="texto-suave ayuda-stock">Cuando vendas una camiseta, presiona <b>−</b> en su talla para descontarla. Si llega más stock, usa <b>+</b>.</p>
 
 @if (error()) {
   <p class="error">{{ error() }}</p>
@@ -47,9 +55,30 @@
           <a routerLink="/admin/nuevo" [queryParams]="{ desde: p._id }" class="btn btn--borde btn--chico" title="Crear una copia sin fotos">Duplicar</a>
           <button type="button" class="btn btn--peligro btn--chico" (click)="eliminar(p)">Eliminar</button>
         </div>
+
+        <div class="stock-tallas">
+          @for (t of p.tallas; track t.talla) {
+            <div class="stock-talla" [class.stock-talla--agotada]="t.stock === 0" [class.stock-talla--ocupada]="ocupado() === p._id + '-' + t.talla">
+              <button type="button" (click)="ajustarStock(p, t.talla, -1)" [disabled]="t.stock === 0" title="Vendí 1 talla {{ t.talla }}">−</button>
+              <span><b>{{ t.talla }}</b> {{ t.stock }}</span>
+              <button type="button" (click)="ajustarStock(p, t.talla, 1)" title="Sumar 1 talla {{ t.talla }}">+</button>
+            </div>
+          } @empty {
+            <span class="texto-suave">Sin tallas</span>
+          }
+        </div>
       </div>
     } @empty {
-      <p class="texto-suave">Sin resultados para "{{ busqueda() }}".</p>
+      <p class="texto-suave">Sin resultados.</p>
+    }
+  </div>
+}
+
+@if (aviso(); as a) {
+  <div class="toast toast--admin" role="status">
+    {{ a.texto }}
+    @if (a.deshacer) {
+      · <button type="button" (click)="deshacer()">Deshacer</button>
     }
   </div>
 }

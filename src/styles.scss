@@ -1394,3 +1394,60 @@ input[type='radio'] {
   opacity: 0.45;
   cursor: not-allowed;
 }
+/* ---------- stock rápido en la lista del admin ---------- */
+.admin__filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.2rem;
+  margin-bottom: 0.6rem;
+  .admin__buscar { flex: 1; min-width: 220px; margin: 0; }
+  .check { margin: 0; white-space: nowrap; font-size: 0.9rem; }
+}
+
+.ayuda-stock { font-size: 0.85rem; margin: 0 0 1rem; b { color: var(--dorado); } }
+
+.stock-tallas {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--borde);
+}
+
+.stock-talla {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  background: var(--negro-3);
+  overflow: hidden;
+  font-size: 0.85rem;
+  span { padding: 0 0.5rem; min-width: 52px; text-align: center; }
+  b { color: var(--dorado); margin-right: 0.15rem; }
+  button {
+    width: 32px;
+    height: 32px;
+    border: 0;
+    background: transparent;
+    font-size: 1.05rem;
+    font-weight: 700;
+    &:hover:not(:disabled) { background: var(--dorado); color: var(--negro); }
+    &:disabled { opacity: 0.25; cursor: not-allowed; }
+  }
+}
+
+.stock-talla--agotada { border-color: var(--rojo); span { color: var(--rojo); } }
+.stock-talla--ocupada { opacity: 0.5; pointer-events: none; }
+
+.toast--admin {
+  button {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: var(--dorado-oscuro);
+    font-weight: 700;
+    text-decoration: underline;
+  }
+}

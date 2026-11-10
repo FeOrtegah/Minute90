@@ -51,6 +51,11 @@ export class ProductosService {
     return this.http.put<Producto>(`${this.url}/${id}`, datos);
   }
 
+  /** Suma o resta stock de una talla. delta -1 = "vendí 1" */
+  ajustarStock(id: string, talla: string, delta: number) {
+    return this.http.patch<Producto>(`${this.url}/${id}/stock`, { talla, delta });
+  }
+
   eliminar(id: string) {
     return this.http.delete<{ mensaje: string }>(`${this.url}/${id}`);
   }
